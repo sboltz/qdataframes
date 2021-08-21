@@ -495,7 +495,7 @@ class EditableTableModel(FormattedTableModel):
 
     def validate_value(
         self, value: Any, column: str
-    ) -> bool:  # I'm not going to delete this yet because it's clearly meant as a hook for something, but I'm not sure why this is here
+    ) -> bool:  # TODO: I'm not going to delete this yet because it's clearly meant as a hook for something, but I'm not sure why this is here
         """ Verify that the value is appropriate """
         return True
 
