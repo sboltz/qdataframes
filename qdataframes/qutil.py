@@ -8,6 +8,7 @@ Created on 8/20/21
 @author: SBoltz
 """
 from functools import wraps
+from typing import Callable, Optional, Any, List, Iterable
 
 from PySide2 import QtWidgets, QtGui, QtCore
 from PySide2.QtCore import Qt
@@ -28,15 +29,21 @@ default_button = {
 }
 
 
-def test_mode_wrapper(func):  # There has to be a less messy way to handle this... especially if other packages are going to be using it
+def test_mode_wrapper(
+    func: Callable,
+) -> Any:  # There has to be a less messy way to handle this... especially if other packages are going to be using it
     """ Determines if it's a project is running in test mode and modifies behavior accordingly """
+
     @wraps(func)
-    def check_test_mode(*args, parent=None, **kwargs):
+    def check_test_mode(*args, parent: Optional[QtWidgets.QWidget] = None, **kwargs):
+        """ Identify if package is in test mode and don't show the msgbox if it is"""
         msg = func(*args, **kwargs)
         if _TEST_MODE and parent:
             parent._msgbox = msg
         elif _TEST_MODE and not parent:
-            raise AttributeError(f"Test mode for {func.__name__} requires specification of a parent object")
+            raise AttributeError(
+                f"Test mode for {func.__name__} requires specification of a parent object"
+            )
         else:
             ret = msg.exec_()
             return ret
@@ -45,7 +52,9 @@ def test_mode_wrapper(func):  # There has to be a less messy way to handle this.
 
 
 @test_mode_wrapper
-def popup_message(txt: str, mtype: str = "info", ok_cancel: bool = False, default: str = "ok") -> int:
+def popup_message(
+    txt: str, mtype: str = "info", ok_cancel: bool = False, default: str = "ok"
+) -> int:
     """
     Create a message box from the current window
 
@@ -74,7 +83,25 @@ def popup_message(txt: str, mtype: str = "info", ok_cancel: bool = False, defaul
 
 
 class QAutoCompleteLineEdit(QtWidgets.QLineEdit):
-    def __init__(self, parent=None):
+    """
+    Line edit widget with autocompletion
+
+    Parameters
+    ----------
+    parent
+        The parent widget for the object
+
+    Attributes
+    ----------
+    suggestions
+        The list of possible suggestions for the completer
+
+    See Also
+    --------
+    See PySide2.QtWidgets.QLineEdit for additional methods and attributes
+    """
+
+    def __init__(self, parent: QtWidgets.QWidget = None) -> None:
         super().__init__(parent)
         completer = QtWidgets.QCompleter()
         completer.setModel(QtGui.QStandardItemModel())
@@ -83,15 +110,16 @@ class QAutoCompleteLineEdit(QtWidgets.QLineEdit):
         self.setCompleter(completer)
 
     @property
-    def suggestions(self):
+    def suggestions(self) -> List[str]:
+        """ Get the list of possible suggestions for the widget """
         completion_model = self.completer().model()
         return [
-            completion_model.item(i).text()
-            for i in range(completion_model.rowCount())
+            completion_model.item(i).text() for i in range(completion_model.rowCount())
         ]
 
     @suggestions.setter
-    def suggestions(self, suggestions):
+    def suggestions(self, suggestions: Iterable[str]):
+        """ Set the list of possible suggestions for the widget """
         completion_model = self.completer().model()
         completion_model.clear()
         for suggestion in suggestions:
@@ -100,21 +128,49 @@ class QAutoCompleteLineEdit(QtWidgets.QLineEdit):
 
 
 class QAutoCompleteDelegate(QtWidgets.QStyledItemDelegate):
+    """
+    Line edit delegate with autocompletion capabilities
 
-    def createEditor(self, parent: QtWidgets.QWidget, option: QtWidgets.QStyleOptionViewItem, index: QtCore.QModelIndex) -> QtWidgets.QWidget:
+    Notes
+    -----
+    The associated model for this delegate should have a method called
+    'autocomplete_suggestions' that returns the possible list of suggestions
+    for the completer
+
+    See Also
+    --------
+    See PySide2.QtWidgets.QStyledItemDelegate for methods and attributes
+    """
+
+    def createEditor(
+        self,
+        parent: QtWidgets.QWidget,
+        option: QtWidgets.QStyleOptionViewItem,
+        index: QtCore.QModelIndex,
+    ) -> QtWidgets.QWidget:
+        """ Create the editor for the delegate """
         return QAutoCompleteLineEdit(parent)
 
     def setEditorData(self, editor: QAutoCompleteLineEdit, index: QtCore.QModelIndex):
+        """ Update the suggestions for the completer """
         val = index.model().data(index, Qt.EditRole)
         mod = index.model()
         try:
             suggestions = mod.autocomplete_suggestions(index)
         except AttributeError:
-            raise MissingAutocompleteError("Data model must have an 'autocomplete_suggestions' method")
+            raise MissingAutocompleteError(
+                "Data model must have an 'autocomplete_suggestions' method"
+            )
         editor.setText(val)
         editor.suggestions = suggestions
 
-    def updateEditorGeometry(self, editor: QtWidgets.QWidget, option: QtWidgets.QStyleOptionViewItem, index: QtCore.QModelIndex):
+    def updateEditorGeometry(
+        self,
+        editor: QtWidgets.QWidget,
+        option: QtWidgets.QStyleOptionViewItem,
+        index: QtCore.QModelIndex,
+    ):
+        """ Make sure the editor geometry is correct """
         editor.setGeometry(option.rect)
 
 

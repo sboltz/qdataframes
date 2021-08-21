@@ -16,6 +16,7 @@ def update_display(func: Callable) -> Callable:
     """
     (correctly) Update the data in a tableView
     """
+
     @wraps(func)
     def update(table, *args, **kwargs) -> None:
         """ perform the update """

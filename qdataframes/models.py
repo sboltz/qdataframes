@@ -97,7 +97,9 @@ class BaseTableModel(QtCore.QAbstractTableModel):
         """
         Add the appropriate roles to the dictionary of role-based behaviors
         """
-        self._role_based_behavior[Qt.DisplayRole] = lambda row, col: self._displayed_data.iloc[row, col]
+        self._role_based_behavior[
+            Qt.DisplayRole
+        ] = lambda row, col: self._displayed_data.iloc[row, col]
 
     def rowCount(self, index: QtCore.QModelIndex) -> int:
         """
@@ -121,7 +123,9 @@ class BaseTableModel(QtCore.QAbstractTableModel):
         """
         return len(self._displayed_data.columns)
 
-    def headerData(self, col: int, orientation: Qt.Orientation, role: Qt.ItemDataRole) -> Union[None, str]:
+    def headerData(
+        self, col: int, orientation: Qt.Orientation, role: Qt.ItemDataRole
+    ) -> Union[None, str]:
         """
         Return the row/column headers for the displayed table
 
@@ -212,7 +216,12 @@ class FormattedTableModel(BaseTableModel):
 
     _meta_table_columns = {"col_number", "display_format", "visible"}
 
-    def __init__(self, data: pd.DataFrame, table_meta: pd.DataFrame, parent: Optional[QtCore.QObject] = None):
+    def __init__(
+        self,
+        data: pd.DataFrame,
+        table_meta: pd.DataFrame,
+        parent: Optional[QtCore.QObject] = None,
+    ):
         self._validate_meta(table_meta, data)
         self._table_meta = table_meta
         super().__init__(data, parent=parent)
@@ -277,7 +286,8 @@ class FormattedTableModel(BaseTableModel):
         if not set(table_meta.columns).issuperset(self._meta_table_columns):
             raise KeyError(
                 "Table metadata missing the following columns: "
-                f"{self._meta_table_columns - set(table_meta.columns)}")
+                f"{self._meta_table_columns - set(table_meta.columns)}"
+            )
         # Make sure there's a record in the meta table for every column in the df
         if not set(table_meta.index).issuperset(data.columns):
             raise KeyError(
@@ -356,9 +366,16 @@ class EditableTableModel(FormattedTableModel):
     fipy.models.FormattedTableModel
     """
 
-    _meta_table_columns = FormattedTableModel._meta_table_columns.union({"data_type", "editable", "autocomplete"})
+    _meta_table_columns = FormattedTableModel._meta_table_columns.union(
+        {"data_type", "editable", "autocomplete"}
+    )
 
-    def __init__(self, data: pd.DataFrame, table_meta: pd.DataFrame, parent: Optional[QtCore.QObject] = None):
+    def __init__(
+        self,
+        data: pd.DataFrame,
+        table_meta: pd.DataFrame,
+        parent: Optional[QtCore.QObject] = None,
+    ):
         super().__init__(data, table_meta=table_meta, parent=parent)
         self._modified_rows = set([])
 
@@ -398,7 +415,9 @@ class EditableTableModel(FormattedTableModel):
     def _register_roles(self) -> None:
         """ Add the appropriate roles to the dictionary of role-based behaviors """
         super()._register_roles()
-        self._role_based_behavior[Qt.EditRole] = lambda row, col: self._displayed_data.iloc[row, col]
+        self._role_based_behavior[
+            Qt.EditRole
+        ] = lambda row, col: self._displayed_data.iloc[row, col]
 
     def autocomplete_suggestions(self, index: QtCore.QModelIndex) -> List[str]:
         """
@@ -416,7 +435,9 @@ class EditableTableModel(FormattedTableModel):
         else:
             return list()
 
-    def setData(self, index: QtCore.QModelIndex, value: str, role: Qt.ItemDataRole) -> bool:
+    def setData(
+        self, index: QtCore.QModelIndex, value: str, role: Qt.ItemDataRole
+    ) -> bool:
         """
         Set the value for the given index
 
@@ -456,7 +477,9 @@ class EditableTableModel(FormattedTableModel):
             self._modified_rows.add(row)
         return True
 
-    def _validate_edit_role(self, index: QtCore.QModelIndex, role: Qt.ItemDataRole) -> Union[Tuple[int, int], bool]:
+    def _validate_edit_role(
+        self, index: QtCore.QModelIndex, role: Qt.ItemDataRole
+    ) -> Union[Tuple[int, int], bool]:
         """ Validate that the given index is really editable """
         if not index.isValid():
             return False
@@ -470,7 +493,9 @@ class EditableTableModel(FormattedTableModel):
             return False
         return row, column
 
-    def validate_value(self, value: Any, column: str) -> bool:  # I'm not going to delete this yet because it's clearly meant as a hook for something, but I'm not sure why this is here
+    def validate_value(
+        self, value: Any, column: str
+    ) -> bool:  # I'm not going to delete this yet because it's clearly meant as a hook for something, but I'm not sure why this is here
         """ Verify that the value is appropriate """
         return True
 

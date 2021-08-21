@@ -16,7 +16,11 @@ import pandas as pd
 from PySide2 import QtWidgets, QtCore
 from PySide2.QtCore import Qt
 
-from qdataframes.qutil import QAutoCompleteDelegate, QAutoCompleteLineEdit, MissingAutocompleteError
+from qdataframes.qutil import (
+    QAutoCompleteDelegate,
+    QAutoCompleteLineEdit,
+    MissingAutocompleteError,
+)
 from qdataframes import EditableTableModel, BaseTableModel
 from qdataframes.formatters import TyperMixIn, FormatterMixIn
 
@@ -40,18 +44,22 @@ class TestAutoCompleteDelegate:
     def thing_requiring_autocomplete(self, init_app) -> MockTableView:
         """ Return something that needs autocomplete functionality """
         specs = {
-            "Letter": {'display_format': "str",
-                       'editable': True,
-                       'col_number': 0,
-                       'autocomplete': True,
-                       'data_type': "str",
-                       'visible': True},
-            "Number": {'display_format': "str",
-                       'editable': True,
-                       'col_number': 1,
-                       'autocomplete': True,
-                       'data_type': "int",
-                       'visible': True},
+            "Letter": {
+                "display_format": "str",
+                "editable": True,
+                "col_number": 0,
+                "autocomplete": True,
+                "data_type": "str",
+                "visible": True,
+            },
+            "Number": {
+                "display_format": "str",
+                "editable": True,
+                "col_number": 1,
+                "autocomplete": True,
+                "data_type": "int",
+                "visible": True,
+            },
         }
         suggestions = self.suggestions
 
@@ -63,7 +71,13 @@ class TestAutoCompleteDelegate:
                 return suggestions
 
         tv = MockTableView()
-        tv.tableView.setModel(Autocompletable(self.data, table_meta=pd.DataFrame(specs, columns=specs.keys()).transpose(), parent=tv.tableView))
+        tv.tableView.setModel(
+            Autocompletable(
+                self.data,
+                table_meta=pd.DataFrame(specs, columns=specs.keys()).transpose(),
+                parent=tv.tableView,
+            )
+        )
         return tv
 
     @pytest.fixture(scope="class")
@@ -73,13 +87,17 @@ class TestAutoCompleteDelegate:
         tv.tableView.setModel(BaseTableModel(self.data, parent=tv.tableView))
         return tv
 
-    def test_delegate_editor_type(self, thing_requiring_autocomplete):
+    def test_delegate_editor_type(self, thing_requiring_autocomplete) -> None:
         """ Make sure the delegate has an autocompleting LineEdit as its underlying object """
         # thing_requiring_autocomplete.tableView
-        editor = thing_requiring_autocomplete.tableView.itemDelegate().createEditor(thing_requiring_autocomplete, QtWidgets.QStyleOptionViewItem.ViewItemFeature.None_, index=QtCore.QModelIndex())
+        editor = thing_requiring_autocomplete.tableView.itemDelegate().createEditor(
+            thing_requiring_autocomplete,
+            QtWidgets.QStyleOptionViewItem.ViewItemFeature.None_,
+            index=QtCore.QModelIndex(),
+        )
         assert isinstance(editor, QAutoCompleteLineEdit)
 
-    def test_completion_filtering(self, init_app):
+    def test_completion_filtering(self, init_app) -> None:
         """ Make sure the settings on the completer will filter as expected """
         # This test might be pointless
         editor = QAutoCompleteLineEdit()
@@ -87,7 +105,7 @@ class TestAutoCompleteDelegate:
         assert completer.caseSensitivity() == Qt.CaseInsensitive
         assert completer.filterMode() == Qt.MatchContains
 
-    def test_delegate_has_autocomplete_vals(self, thing_requiring_autocomplete):
+    def test_delegate_has_autocomplete_vals(self, thing_requiring_autocomplete) -> None:
         """
         Make sure the autocomplete delegate has the correct suggestions
         """
@@ -95,10 +113,12 @@ class TestAutoCompleteDelegate:
         editor = QAutoCompleteLineEdit()
         # Pass the editor to the item delegate
         ind = thing_requiring_autocomplete.tableView.model().index(0, 0)
-        thing_requiring_autocomplete.tableView.itemDelegate().setEditorData(editor, index=ind)
+        thing_requiring_autocomplete.tableView.itemDelegate().setEditorData(
+            editor, index=ind
+        )
         assert set(editor.suggestions) == set(self.suggestions)
 
-    def test_delegate_has_no_suggestions(self, bad_autocompleting_object):
+    def test_delegate_has_no_suggestions(self, bad_autocompleting_object) -> None:
         """
         Verify behaves gracefully if can't access 'autocomplete_suggestions'
         """
@@ -106,5 +126,10 @@ class TestAutoCompleteDelegate:
         editor = QAutoCompleteLineEdit()
         # Attempt to set data on the editor
         ind = bad_autocompleting_object.tableView.model().index(0, 0)
-        with pytest.raises(MissingAutocompleteError, match="Data model must have an 'autocomplete_suggestions' method"):
-            bad_autocompleting_object.tableView.itemDelegate().setEditorData(editor, index=ind)
+        with pytest.raises(
+            MissingAutocompleteError,
+            match="Data model must have an 'autocomplete_suggestions' method",
+        ):
+            bad_autocompleting_object.tableView.itemDelegate().setEditorData(
+                editor, index=ind
+            )

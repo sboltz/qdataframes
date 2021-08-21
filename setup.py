@@ -35,10 +35,8 @@ setup(
     long_description=readme,
     long_description_content_type="text/markdown",
     url="https://github.com/sboltz/qdataframes",
-    project_urls={
-        "Bug Tracker": "https://github.com/sboltz/qdataframes/issues",
-    },
-    classifiers =[
+    project_urls={"Bug Tracker": "https://github.com/sboltz/qdataframes/issues",},
+    classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
         "Operating System :: OS Independent",
@@ -47,9 +45,5 @@ setup(
         "Topic :: Software Development :: User Interfaces",
     ],
     python_requires=">=3.8",
-    install_requires=[
-        "versioneer",
-        "pandas>=1.1.3",
-        "PySide2>=5.15.0",
-    ],
+    install_requires=["versioneer", "pandas>=1.1.3", "PySide2>=5.15.0",],
 )

@@ -38,12 +38,15 @@ class FormatModel(FormattedTableModel, FormatterMixIn):
 @pytest.fixture(scope="module")
 def simple_df() -> pd.DataFrame:
     """ Return a test df of data """
-    return pd.DataFrame([
-        ["a", 1, pd.Timestamp("2021-01-01"), "this"],
-        ["d", 2, pd.Timestamp("2021-01-02"), "is"],
-        ["b", 3, pd.Timestamp("2021-02-01"), "not"],
-        ["c", 4, pd.Timestamp("2021-03-01"), "visible"]
-    ], columns=["Letter", "Number", "Date", "Extra"])
+    return pd.DataFrame(
+        [
+            ["a", 1, pd.Timestamp("2021-01-01"), "this"],
+            ["d", 2, pd.Timestamp("2021-01-02"), "is"],
+            ["b", 3, pd.Timestamp("2021-02-01"), "not"],
+            ["c", 4, pd.Timestamp("2021-03-01"), "visible"],
+        ],
+        columns=["Letter", "Number", "Date", "Extra"],
+    )
 
 
 @pytest.fixture(scope="module")
@@ -55,13 +58,16 @@ def data_col_numbers(simple_df) -> Dict[str, int]:
 @pytest.fixture(scope="class")
 def meta_df() -> pd.DataFrame:
     """ Return a metadata table"""
-    return pd.DataFrame([
-        # col_name  col_number  display_format  visible
-        ["Letter", 1, "str", True],
-        ["Number", 2, "two_decimals", True],
-        ["Date", 0, "date", True],
-        ["Extra", -9, "str", False],
-    ], columns=["col_name", "col_number", "display_format", "visible"]).set_index("col_name")
+    return pd.DataFrame(
+        [
+            # col_name  col_number  display_format  visible
+            ["Letter", 1, "str", True],
+            ["Number", 2, "two_decimals", True],
+            ["Date", 0, "date", True],
+            ["Extra", -9, "str", False],
+        ],
+        columns=["col_name", "col_number", "display_format", "visible"],
+    ).set_index("col_name")
 
 
 # noinspection PyMissingTypeHints
@@ -142,7 +148,12 @@ class TestFormattedTableModel:
     """ Tests for a table model that allows formatting for columns """
 
     expected_display = {"Letter": "a", "Number": "1.00", "Date": "2021-01-01"}
-    expected_data = {"Letter": "a", "Number": 1, "Date": pd.Timestamp("2021-01-01"), "Extra": "this"}
+    expected_data = {
+        "Letter": "a",
+        "Number": 1,
+        "Date": pd.Timestamp("2021-01-01"),
+        "Extra": "this",
+    }
 
     @pytest.fixture(scope="class")
     def format_table(self, meta_df, simple_df) -> FormatModel:
@@ -170,7 +181,9 @@ class TestFormattedTableModel:
 
     def test_missing_meta_column(self, missing_meta_col, simple_df):
         """ Verify errors predictably on a missing column in the meta table """
-        with pytest.raises(KeyError, match="missing the following columns: {'col_number'}"):
+        with pytest.raises(
+            KeyError, match="missing the following columns: {'col_number'}"
+        ):
             FormatModel(simple_df, table_meta=missing_meta_col)
 
     def test_missing_meta_value(self, missing_meta_val, simple_df):
@@ -180,7 +193,9 @@ class TestFormattedTableModel:
 
     def test_missing_data_col(self, meta_df, extra_data_col):
         """ Verify errors predictably if the meta table is missing one of the data columns """
-        with pytest.raises(KeyError, match="No metadata for the following data columns: {'Stuff'}"):
+        with pytest.raises(
+            KeyError, match="No metadata for the following data columns: {'Stuff'}"
+        ):
             FormatModel(extra_data_col, table_meta=meta_df)
 
     def test_extra_data_col(self, meta_df, simple_df):
@@ -206,7 +221,10 @@ class TestFormattedTableModel:
 
     def test_missing_formatter(self, meta_df, simple_df):
         """ Verify that a missing formatter fails early """
-        with pytest.raises(AttributeError, match="'FormattedTableModel' object has no attribute 'format_str'"):
+        with pytest.raises(
+            AttributeError,
+            match="'FormattedTableModel' object has no attribute 'format_str'",
+        ):
             FormattedTableModel(simple_df, table_meta=meta_df)
 
     def test_column_order(self, format_table, meta_df):
@@ -223,9 +241,15 @@ class TestEditableTableModel:
     def editable_meta(self, meta_df) -> pd.DataFrame:
         """ Adapt the existing meta table to include editing information """
         meta_df = meta_df.copy()
-        meta_df["editable"] = meta_df.index.map({"Letter": True, "Number": False, "Date": True, "Extra": False})
-        meta_df["autocomplete"] = meta_df.index.map({"Letter": True, "Number": False, "Date": False, "Extra": False})
-        meta_df["data_type"] = meta_df.index.map({"Letter": "str", "Number": "int", "Date": "date", "Extra": "str"})
+        meta_df["editable"] = meta_df.index.map(
+            {"Letter": True, "Number": False, "Date": True, "Extra": False}
+        )
+        meta_df["autocomplete"] = meta_df.index.map(
+            {"Letter": True, "Number": False, "Date": False, "Extra": False}
+        )
+        meta_df["data_type"] = meta_df.index.map(
+            {"Letter": "str", "Number": "int", "Date": "date", "Extra": "str"}
+        )
         return meta_df
 
     @pytest.fixture(scope="class")
@@ -236,6 +260,7 @@ class TestEditableTableModel:
     @pytest.fixture(scope="function")
     def editable_table(self, editable_meta, simple_df) -> EditableTableModel:
         """ Create an editable table """
+
         class EditModel(EditableTableModel, FormatModel, TyperMixIn):
             """ Editable model with formatters """
 
@@ -272,13 +297,17 @@ class TestEditableTableModel:
         data = edit_table._data.iloc[0]["Number"]
         assert data == 1
 
-    def test_autocomplete_suggestions(self, editable_table, editable_col_numbers, simple_df):
+    def test_autocomplete_suggestions(
+        self, editable_table, editable_col_numbers, simple_df
+    ):
         """ Verify the autocomplete suggestions match expectations """
         ind = editable_table.index(0, editable_col_numbers["Letter"])
         suggestions = editable_table.autocomplete_suggestions(ind)
         assert set(suggestions) == set(simple_df["Letter"])
 
-    def test_autocomplete_suggestions_not_autocompletable(self, editable_table, editable_col_numbers):
+    def test_autocomplete_suggestions_not_autocompletable(
+        self, editable_table, editable_col_numbers
+    ):
         """ Verify no suggestions return if autocomplete=False """
         ind = editable_table.index(0, editable_col_numbers["Number"])
         suggestions = editable_table.autocomplete_suggestions(ind)
