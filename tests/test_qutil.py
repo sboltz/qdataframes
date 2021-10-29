@@ -41,7 +41,7 @@ class TestAutoCompleteDelegate:
     suggestions = ["abcd", "bacd", "bcde", "defg", "aaae"]
 
     @pytest.fixture(scope="class")
-    def thing_requiring_autocomplete(self, init_app) -> MockTableView:
+    def thing_requiring_autocomplete(self, init_app: QtWidgets.QApplication) -> MockTableView:
         """ Return something that needs autocomplete functionality """
         specs = {
             "Letter": {
@@ -81,13 +81,13 @@ class TestAutoCompleteDelegate:
         return tv
 
     @pytest.fixture(scope="class")
-    def bad_autocompleting_object(self, init_app) -> MockTableView:
+    def bad_autocompleting_object(self, init_app: QtWidgets.QApplication) -> MockTableView:
         """ Return something that needs autocomplete, but doesn't provide the required suggestions """
         tv = MockTableView()
         tv.tableView.setModel(BaseTableModel(self.data, parent=tv.tableView))
         return tv
 
-    def test_delegate_editor_type(self, thing_requiring_autocomplete) -> None:
+    def test_delegate_editor_type(self, thing_requiring_autocomplete: MockTableView) -> None:
         """ Make sure the delegate has an autocompleting LineEdit as its underlying object """
         # thing_requiring_autocomplete.tableView
         editor = thing_requiring_autocomplete.tableView.itemDelegate().createEditor(
@@ -97,7 +97,7 @@ class TestAutoCompleteDelegate:
         )
         assert isinstance(editor, QAutoCompleteLineEdit)
 
-    def test_completion_filtering(self, init_app) -> None:
+    def test_completion_filtering(self, init_app: QtWidgets.QApplication) -> None:
         """ Make sure the settings on the completer will filter as expected """
         # This test might be pointless
         editor = QAutoCompleteLineEdit()
@@ -105,7 +105,7 @@ class TestAutoCompleteDelegate:
         assert completer.caseSensitivity() == Qt.CaseInsensitive
         assert completer.filterMode() == Qt.MatchContains
 
-    def test_delegate_has_autocomplete_vals(self, thing_requiring_autocomplete) -> None:
+    def test_delegate_has_autocomplete_vals(self, thing_requiring_autocomplete: MockTableView) -> None:
         """
         Make sure the autocomplete delegate has the correct suggestions
         """
@@ -118,7 +118,7 @@ class TestAutoCompleteDelegate:
         )
         assert set(editor.suggestions) == set(self.suggestions)
 
-    def test_delegate_has_no_suggestions(self, bad_autocompleting_object) -> None:
+    def test_delegate_has_no_suggestions(self, bad_autocompleting_object: MockTableView) -> None:
         """
         Verify behaves gracefully if can't access 'autocomplete_suggestions'
         """

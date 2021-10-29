@@ -10,8 +10,8 @@ Created on 4/20/21
 from typing import Optional, Union, Tuple, List, Any, Callable
 
 import pandas as pd
-from PySide2 import QtCore
-from PySide2.QtCore import Qt
+from PySide6 import QtCore
+from PySide6.QtCore import Qt
 
 from qdataframes.util import update_display
 from qdataframes.formatters import TypeConversionError
@@ -65,9 +65,9 @@ class BaseTableModel(QtCore.QAbstractTableModel):
         self._role_based_behavior = {}
         self._register_roles()
 
-    def data(self, index: QtCore.QModelIndex, role: Qt.ItemDataRole) -> Any:
+    def data(self, index: QtCore.QModelIndex, role: Qt.ItemDataRole) -> Any:  # type: ignore[override]
         """
-        Method to control what/how data is displayed
+        Control what/how data is displayed
 
         Parameters
         ----------
@@ -101,7 +101,7 @@ class BaseTableModel(QtCore.QAbstractTableModel):
             Qt.DisplayRole
         ] = lambda row, col: self._displayed_data.iloc[row, col]
 
-    def rowCount(self, index: QtCore.QModelIndex) -> int:
+    def rowCount(self, index: QtCore.QModelIndex) -> int:  # type: ignore[override]
         """
         Return the number of rows in the displayed table
 
@@ -112,7 +112,7 @@ class BaseTableModel(QtCore.QAbstractTableModel):
         """
         return len(self._displayed_data)
 
-    def columnCount(self, index: QtCore.QModelIndex) -> int:
+    def columnCount(self, index: QtCore.QModelIndex) -> int:  # type: ignore[override]
         """
         Return the number of columns in the displayed table
 
@@ -123,7 +123,7 @@ class BaseTableModel(QtCore.QAbstractTableModel):
         """
         return len(self._displayed_data.columns)
 
-    def headerData(
+    def headerData(  # type: ignore[override]
         self, col: int, orientation: Qt.Orientation, role: Qt.ItemDataRole
     ) -> Union[None, str]:
         """
@@ -154,7 +154,7 @@ class BaseTableModel(QtCore.QAbstractTableModel):
 
     @update_display
     def sort(self, column: int, order: Optional[Qt.SortOrder] = None) -> None:
-        """ sort the model and display """
+        """ Sort the model and display """
         # get column name and ascending status
         colname = self._displayed_data.columns[column]
         # Important: Qt sort order is backwards from pandas (AscendingOrder evaluates to False)
@@ -230,8 +230,7 @@ class FormattedTableModel(BaseTableModel):
     @property
     def visible_columns(self) -> pd.Index:
         """
-        The columns from the provided input dataframe that should actually be
-        displayed in the table view
+        Return the columns that should be displayed in the table view
 
         Notes
         -----
@@ -243,7 +242,7 @@ class FormattedTableModel(BaseTableModel):
 
     @property
     def display_formats(self) -> pd.Series:
-        """ The display format for each column in the table """
+        """ Return the format for each column in the table """
         return self._table_meta["display_format"]
 
     def formatter(self, column: str) -> Callable:
@@ -280,7 +279,7 @@ class FormattedTableModel(BaseTableModel):
         """ Update the data that is displayed in the table """
         self._displayed_data = self._format_columns()
 
-    def _validate_meta(self, table_meta: pd.DataFrame, data: pd.DataFrame):
+    def _validate_meta(self, table_meta: pd.DataFrame, data: pd.DataFrame) -> None:
         """ Make sure the table metadata is complete """
         # Make sure the meta table isn't missing any columns
         if not set(table_meta.columns).issuperset(self._meta_table_columns):
@@ -382,7 +381,7 @@ class EditableTableModel(FormattedTableModel):
     @property
     def editable_columns(self) -> pd.Series:
         """
-        A list of indices of the columns that are editable
+        Return indices of the editable columns
 
         Notes
         -----
@@ -393,7 +392,7 @@ class EditableTableModel(FormattedTableModel):
 
     @property
     def data_types(self) -> pd.Series:
-        """ A list of the data type conversions to apply to user-entered data """
+        """ Return the data type conversions to apply to user-entered data """
         return self._table_meta.loc[self._table_meta["editable"]]["data_type"]
 
     def type_converter(self, column: str) -> Callable:
@@ -435,7 +434,7 @@ class EditableTableModel(FormattedTableModel):
         else:
             return list()
 
-    def setData(
+    def setData(  # type: ignore[override]
         self, index: QtCore.QModelIndex, value: str, role: Qt.ItemDataRole
     ) -> bool:
         """
@@ -454,7 +453,7 @@ class EditableTableModel(FormattedTableModel):
         -------
         True if the value was set, else False
         """
-        ind: Optional[Tuple[int, int]] = self._validate_edit_role(index, role)
+        ind = self._validate_edit_role(index, role)
         if not ind:
             return False
         # Get the actual row and column of the table
@@ -479,19 +478,17 @@ class EditableTableModel(FormattedTableModel):
 
     def _validate_edit_role(
         self, index: QtCore.QModelIndex, role: Qt.ItemDataRole
-    ) -> Union[Tuple[int, int], bool]:
+    ) -> Optional[Tuple[int, int]]:
         """ Validate that the given index is really editable """
-        if not index.isValid():
-            return False
-        if role != Qt.EditRole:
-            return False
         row = index.row()
-        if row < 0 or row >= len(self._data.values):
-            return False
-        column = index.column()
-        if column < 0 or column >= self._data.columns.size:
-            return False
-        return row, column
+        col = index.column()
+        cond1 = not index.isValid()
+        cond2 = role != Qt.EditRole
+        cond3 = row < 0 or row >= len(self._data.values)
+        cond4 = col < 0 or col >= self._data_columns.size
+        if any([cond1, cond2, cond3, cond4]):
+            return None
+        return row, col
 
     def validate_value(
         self, value: Any, column: str
@@ -499,9 +496,9 @@ class EditableTableModel(FormattedTableModel):
         """ Verify that the value is appropriate """
         return True
 
-    def flags(self, index: QtCore.QModelIndex) -> Qt.ItemFlag:
+    def flags(self, index: QtCore.QModelIndex) -> Qt.ItemFlag:  # type: ignore[override]
         """
-        Returns the flags for the index
+        Return the flags for the index
 
         Parameters
         ----------
@@ -510,7 +507,7 @@ class EditableTableModel(FormattedTableModel):
         """
         col = index.column()
         # This is a mess, but I kept getting infinite recursion otherwise...
-        flags = super(self.__class__.__mro__[1], self).flags(index)
+        flags = super(self.__class__.__mro__[1], self).flags(index)  # type: ignore[arg-type]
         if col in self.editable_columns.values:
             flags |= Qt.ItemIsEditable
         flags |= Qt.ItemIsSelectable

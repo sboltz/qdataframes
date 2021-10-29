@@ -16,7 +16,7 @@ version = path / package_name / "version.py"
 txt = version.read_text(encoding=encoding).split("\n")
 versions = {}
 for v in txt:
-    v = v.split("=")
+    v = v.split("=")  # type: ignore[assignment]
     print(v)
     if len(v) == 2:
         versions[v[0].strip()] = v[1].strip().replace("'", "").replace('"', "")
@@ -35,7 +35,9 @@ setup(
     long_description=readme,
     long_description_content_type="text/markdown",
     url="https://github.com/sboltz/qdataframes",
-    project_urls={"Bug Tracker": "https://github.com/sboltz/qdataframes/issues",},
+    project_urls={
+        "Bug Tracker": "https://github.com/sboltz/qdataframes/issues",
+    },
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
@@ -45,5 +47,7 @@ setup(
         "Topic :: Software Development :: User Interfaces",
     ],
     python_requires=">=3.8",
-    install_requires=["versioneer", "pandas>=1.1.3", "PySide2>=5.15.0",],
+    install_requires=[
+        "versioneer", "pandas>=1.1.3", "PySide2>=5.15.0",
+    ],
 )

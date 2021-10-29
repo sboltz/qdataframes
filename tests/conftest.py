@@ -10,11 +10,11 @@ Created on 8/20/21
 
 import pytest
 
-from PySide2 import QtWidgets
+from PySide6 import QtWidgets
 
 
 @pytest.fixture(scope="session")
-def init_app() -> QtWidgets.QApplication:
+def init_app() -> QtWidgets.QApplication:  # type: ignore[misc]
     """ Initialize FiPy """
     app = QtWidgets.QApplication()
     yield app

@@ -35,18 +35,18 @@ def test_mode_wrapper(
     """ Determines if it's a project is running in test mode and modifies behavior accordingly """
 
     @wraps(func)
-    def check_test_mode(*args, parent: Optional[QtWidgets.QWidget] = None, **kwargs):
+    def check_test_mode(*args: Any, parent: Optional[QtWidgets.QWidget] = None, **kwargs: Any) -> Optional[int]:
         """ Identify if package is in test mode and don't show the msgbox if it is"""
         msg = func(*args, **kwargs)
         if _TEST_MODE and parent:
             parent._msgbox = msg
-        elif _TEST_MODE and not parent:
+            return None
+        elif _TEST_MODE:
             raise AttributeError(
                 f"Test mode for {func.__name__} requires specification of a parent object"
             )
         else:
-            ret = msg.exec_()
-            return ret
+            return msg.exec_()
 
     return check_test_mode
 
@@ -118,7 +118,7 @@ class QAutoCompleteLineEdit(QtWidgets.QLineEdit):
         ]
 
     @suggestions.setter
-    def suggestions(self, suggestions: Iterable[str]):
+    def suggestions(self, suggestions: Iterable[str]) -> None:
         """ Set the list of possible suggestions for the widget """
         completion_model = self.completer().model()
         completion_model.clear()
@@ -151,7 +151,7 @@ class QAutoCompleteDelegate(QtWidgets.QStyledItemDelegate):
         """ Create the editor for the delegate """
         return QAutoCompleteLineEdit(parent)
 
-    def setEditorData(self, editor: QAutoCompleteLineEdit, index: QtCore.QModelIndex):
+    def setEditorData(self, editor: QAutoCompleteLineEdit, index: QtCore.QModelIndex) -> None:
         """ Update the suggestions for the completer """
         val = index.model().data(index, Qt.EditRole)
         mod = index.model()
@@ -169,7 +169,7 @@ class QAutoCompleteDelegate(QtWidgets.QStyledItemDelegate):
         editor: QtWidgets.QWidget,
         option: QtWidgets.QStyleOptionViewItem,
         index: QtCore.QModelIndex,
-    ):
+    ) -> None:
         """ Make sure the editor geometry is correct """
         editor.setGeometry(option.rect)
 
