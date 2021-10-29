@@ -48,7 +48,7 @@ class FormatterMixIn:
         """
         ser = ser.astype(str)
         # Deal with NaNs because they are a pain in the @$$
-        ser = handle_str_nan(ser)
+        ser = handle_str_nan(ser)  # type: ignore[arg-type]  # astype makes it think both df and series possible?
         return ser
 
 

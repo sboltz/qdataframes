@@ -14,7 +14,7 @@ from PySide2 import QtWidgets
 
 
 @pytest.fixture(scope="session")
-def init_app() -> QtWidgets.QApplication:
+def init_app() -> QtWidgets.QApplication:  # type: ignore[misc]
     """ Initialize FiPy """
     app = QtWidgets.QApplication()
     yield app

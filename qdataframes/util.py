@@ -8,8 +8,10 @@ Created on 8/20/21
 @author: SBoltz
 """
 import textwrap
-from typing import Callable, Union, Sequence
+from typing import Callable, Union, Sequence, Any
 from functools import wraps
+
+from PySide6.QtWidgets import QTableView
 
 
 def update_display(func: Callable) -> Callable:
@@ -18,8 +20,8 @@ def update_display(func: Callable) -> Callable:
     """
 
     @wraps(func)
-    def update(table, *args, **kwargs) -> None:
-        """ perform the update """
+    def update(table: QTableView, *args: Any, **kwargs: Any) -> None:
+        """ Perform the update """
         table.layoutAboutToBeChanged.emit()
         func(table, *args, **kwargs)
         table.update_displayed_data()
@@ -28,9 +30,9 @@ def update_display(func: Callable) -> Callable:
     return update
 
 
-def compose_docstring(**kwargs: Union[str, Sequence[str]]):
+def compose_docstring(**kwargs: Union[str, Sequence[str]]) -> Callable:
     """
-    Decorator for composing docstrings.
+    Compose docstrings by substituting variables (similar to f-strings)
 
     This allows components of docstrings which are often repeated to be
     specified in a single place. Values provided to this function should
@@ -44,7 +46,6 @@ def compose_docstring(**kwargs: Union[str, Sequence[str]]):
 
     Examples
     --------
-
     @compose_docstring(some_value='10')
     def example_function():
         '''
