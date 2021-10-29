@@ -35,7 +35,9 @@ def test_mode_wrapper(
     """ Determines if it's a project is running in test mode and modifies behavior accordingly """
 
     @wraps(func)
-    def check_test_mode(*args: Any, parent: Optional[QtWidgets.QWidget] = None, **kwargs: Any) -> Optional[int]:
+    def check_test_mode(
+        *args: Any, parent: Optional[QtWidgets.QWidget] = None, **kwargs: Any
+    ) -> Optional[int]:
         """ Identify if package is in test mode and don't show the msgbox if it is"""
         msg = func(*args, **kwargs)
         if _TEST_MODE and parent:
@@ -151,7 +153,9 @@ class QAutoCompleteDelegate(QtWidgets.QStyledItemDelegate):
         """ Create the editor for the delegate """
         return QAutoCompleteLineEdit(parent)
 
-    def setEditorData(self, editor: QAutoCompleteLineEdit, index: QtCore.QModelIndex) -> None:
+    def setEditorData(
+        self, editor: QAutoCompleteLineEdit, index: QtCore.QModelIndex
+    ) -> None:
         """ Update the suggestions for the completer """
         val = index.model().data(index, Qt.EditRole)
         mod = index.model()

@@ -10,8 +10,8 @@ Created on 4/20/21
 from typing import Optional, Union, Tuple, List, Any, Callable
 
 import pandas as pd
-from PySide6 import QtCore
-from PySide6.QtCore import Qt
+from PySide2 import QtCore
+from PySide2.QtCore import Qt
 
 from qdataframes.util import update_display
 from qdataframes.formatters import TypeConversionError
@@ -485,7 +485,7 @@ class EditableTableModel(FormattedTableModel):
         cond1 = not index.isValid()
         cond2 = role != Qt.EditRole
         cond3 = row < 0 or row >= len(self._data.values)
-        cond4 = col < 0 or col >= self._data_columns.size
+        cond4 = col < 0 or col >= self._data.columns.size
         if any([cond1, cond2, cond3, cond4]):
             return None
         return row, col

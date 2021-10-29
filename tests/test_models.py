@@ -82,7 +82,9 @@ class TestBaseTableModel:
         """ Return a BaseTableModel """
         return BaseTableModel(simple_df)
 
-    def test_displayed_data(self, base_table: BaseTableModel, simple_df: pd.DataFrame) -> None:
+    def test_displayed_data(
+        self, base_table: BaseTableModel, simple_df: pd.DataFrame
+    ) -> None:
         """ Verify that the displayed data is simply the input DataFrame """
         assert (base_table._displayed_data == simple_df).all().all()
 
@@ -99,7 +101,9 @@ class TestBaseTableModel:
         ind = base_table.index(*self.index0)
         assert base_table.data(ind, Qt.EditRole) is None
 
-    def test_table_dimensions(self, base_table: BaseTableModel, simple_df: pd.DataFrame) -> None:
+    def test_table_dimensions(
+        self, base_table: BaseTableModel, simple_df: pd.DataFrame
+    ) -> None:
         """ Verify the data dimensions match the dimensions of the input DataFrame"""
         ind = base_table.index(*self.index0)
         assert base_table.rowCount(ind) == len(simple_df)
@@ -118,7 +122,9 @@ class TestBaseTableModel:
         """ Verify that the table header returns None if not in DisplayRole """
         assert base_table.headerData(0, Qt.Horizontal, Qt.EditRole) is None
 
-    def test_sort(self, base_table: BaseTableModel, data_col_numbers: Dict[str, int]) -> None:
+    def test_sort(
+        self, base_table: BaseTableModel, data_col_numbers: Dict[str, int]
+    ) -> None:
         """ Verify that table sorting works predictably... """
         # Should sort ascending
         base_table.sort(column=data_col_numbers["Letter"])
@@ -156,7 +162,9 @@ class TestFormattedTableModel:
     }
 
     @pytest.fixture(scope="class")
-    def format_table(self, meta_df: pd.DataFrame, simple_df: pd.DataFrame) -> FormatModel:
+    def format_table(
+        self, meta_df: pd.DataFrame, simple_df: pd.DataFrame
+    ) -> FormatModel:
         """ Return a FormattedTableModel """
         return FormatModel(simple_df, table_meta=meta_df)
 
@@ -179,30 +187,40 @@ class TestFormattedTableModel:
         df["Stuff"] = "hello"
         return df
 
-    def test_missing_meta_column(self, missing_meta_col: pd.DataFrame, simple_df: pd.DataFrame) -> None:
+    def test_missing_meta_column(
+        self, missing_meta_col: pd.DataFrame, simple_df: pd.DataFrame
+    ) -> None:
         """ Verify errors predictably on a missing column in the meta table """
         with pytest.raises(
             KeyError, match="missing the following columns: {'col_number'}"
         ):
             FormatModel(simple_df, table_meta=missing_meta_col)
 
-    def test_missing_meta_value(self, missing_meta_val: pd.DataFrame, simple_df: pd.DataFrame) -> None:
+    def test_missing_meta_value(
+        self, missing_meta_val: pd.DataFrame, simple_df: pd.DataFrame
+    ) -> None:
         """ Verify errors predictably if there is a missing value in the meta table """
         with pytest.raises(ValueError, match="missing values"):
             FormatModel(simple_df, table_meta=missing_meta_val)
 
-    def test_missing_data_col(self, meta_df: pd.DataFrame, extra_data_col: pd.DataFrame) -> None:
+    def test_missing_data_col(
+        self, meta_df: pd.DataFrame, extra_data_col: pd.DataFrame
+    ) -> None:
         """ Verify errors predictably if the meta table is missing one of the data columns """
         with pytest.raises(
             KeyError, match="No metadata for the following data columns: {'Stuff'}"
         ):
             FormatModel(extra_data_col, table_meta=meta_df)
 
-    def test_extra_data_col(self, meta_df: pd.DataFrame, simple_df: pd.DataFrame) -> None:
+    def test_extra_data_col(
+        self, meta_df: pd.DataFrame, simple_df: pd.DataFrame
+    ) -> None:
         """ Verify an extra data column in the meta table doesn't raise """
         FormatModel(simple_df[["Letter", "Number", "Extra"]], table_meta=meta_df)
 
-    def test_visible(self, format_table: FormattedTableModel, simple_df: pd.DataFrame) -> None:
+    def test_visible(
+        self, format_table: FormattedTableModel, simple_df: pd.DataFrame
+    ) -> None:
         """
         Verify 'displayed' table has the correct visible columns (and that the
         'data' table has columns)
@@ -219,7 +237,9 @@ class TestFormattedTableModel:
         for key, val in self.expected_data.items():
             assert row[key] == val
 
-    def test_missing_formatter(self, meta_df: pd.DataFrame, simple_df: pd.DataFrame) -> None:
+    def test_missing_formatter(
+        self, meta_df: pd.DataFrame, simple_df: pd.DataFrame
+    ) -> None:
         """ Verify that a missing formatter fails early """
         with pytest.raises(
             AttributeError,
@@ -227,7 +247,9 @@ class TestFormattedTableModel:
         ):
             FormattedTableModel(simple_df, table_meta=meta_df)
 
-    def test_column_order(self, format_table: FormattedTableModel, meta_df: pd.DataFrame) -> None:
+    def test_column_order(
+        self, format_table: FormattedTableModel, meta_df: pd.DataFrame
+    ) -> None:
         """ Verify that the column order matches what is in the meta data """
         for col, num in meta_df.loc[meta_df.visible]["col_number"].iteritems():
             assert format_table._displayed_data.columns[num] == col
@@ -258,7 +280,9 @@ class TestEditableTableModel:
         return editable_meta["col_number"]
 
     @pytest.fixture(scope="function")
-    def editable_table(self, editable_meta: pd.DataFrame, simple_df: pd.DataFrame) -> EditableTableModel:
+    def editable_table(
+        self, editable_meta: pd.DataFrame, simple_df: pd.DataFrame
+    ) -> EditableTableModel:
         """ Create an editable table """
 
         class EditModel(EditableTableModel, FormatModel, TyperMixIn):
@@ -267,7 +291,9 @@ class TestEditableTableModel:
         return EditModel(simple_df, table_meta=editable_meta)
 
     @pytest.fixture(scope="function")
-    def edit_table(self, editable_table: EditableTableModel, editable_col_numbers: pd.Series) -> EditableTableModel:
+    def edit_table(
+        self, editable_table: EditableTableModel, editable_col_numbers: pd.Series
+    ) -> EditableTableModel:
         """ Edit each of the visible columns in the table """
         ind = editable_table.index(0, editable_col_numbers["Date"])
         editable_table.setData(ind, "2021-05-09", Qt.EditRole)
@@ -298,7 +324,10 @@ class TestEditableTableModel:
         assert data == 1
 
     def test_autocomplete_suggestions(
-        self, editable_table: EditableTableModel, editable_col_numbers: pd.Series, simple_df: pd.DataFrame
+        self,
+        editable_table: EditableTableModel,
+        editable_col_numbers: pd.Series,
+        simple_df: pd.DataFrame,
     ) -> None:
         """ Verify the autocomplete suggestions match expectations """
         ind = editable_table.index(0, editable_col_numbers["Letter"])
