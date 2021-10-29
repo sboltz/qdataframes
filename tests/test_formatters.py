@@ -13,7 +13,7 @@ import pytest
 import pandas as pd
 import numpy as np
 
-from PySide6 import QtWidgets
+from PySide2 import QtWidgets
 
 from qdataframes.formatters import (
     TypeConversionError,

@@ -10,7 +10,7 @@ Created on 8/20/21
 
 import pytest
 
-from PySide6 import QtWidgets
+from PySide2 import QtWidgets
 
 
 @pytest.fixture(scope="session")
